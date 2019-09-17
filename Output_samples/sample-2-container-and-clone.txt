@@ -1,0 +1,29 @@
+{'lang': 'en', 'name': 'html', 'hidden': False, 'is_empty_element': False, 'next_element': '', 'parent_name': '[document]', 'text': 'SB Admin 2 - Bootstrap Admin Theme Toggle navigation SB'}
+ | |
+ \ /
+{'name': 'body', 'hidden': False, 'is_empty_element': False, 'next_element': '', 'parent_name': 'html', 'text': 'Toggle navigation SB Admin v2.0 John Smith Yesterday Lorem ipsum'}
+ | |
+ \ /
+{'id': 'wrapper', 'name': 'div', 'hidden': False, 'is_empty_element': False, 'next_element': '', 'parent_name': 'body', 'text': 'Toggle navigation SB Admin v2.0 John Smith Yesterday Lorem ipsum'}
+ | |
+ \ /
+{'id': 'page-wrapper', 'name': 'div', 'hidden': False, 'is_empty_element': False, 'next_element': '', 'parent_name': 'div', 'text': 'Dashboard 26 New Comments! View Details 12 New Tasks! View'}
+ | |
+ \ /
+{'class': ['row'], 'name': 'div', 'hidden': False, 'is_empty_element': False, 'next_element': '', 'parent_name': 'div', 'text': 'Make Everything OK Area Actions Action Another action Something else'}
+ | |
+ \ /
+{'class': ['col-lg-8'], 'name': 'div', 'hidden': False, 'is_empty_element': False, 'next_element': '', 'parent_name': 'div', 'text': 'Make Everything OK Area Actions Action Another action Something else'}
+ | |
+ \ /
+{'class': ['panel', 'panel-default'], 'name': 'div', 'hidden': False, 'is_empty_element': False, 'next_element': '', 'parent_name': 'div', 'text': 'Make Everything OK Area Actions Action Another action Something else'}
+ | |
+ \ /
+{'class': ['panel-body'], 'name': 'div', 'hidden': False, 'is_empty_element': False, 'next_element': '', 'parent_name': 'div', 'text': 'Make everything OK'}
+ | |
+ \ /
+{'class': ['some-container'], 'name': 'div', 'hidden': False, 'is_empty_element': False, 'next_element': '', 'parent_name': 'div', 'text': 'Make everything OK'}
+ | |
+ \ /
+{'class': ['btn', 'test-link-ok'], 'href': '#ok', 'title': 'Make-Button', 'onclick': 'javascript:window.okComplete(); return false;', 'name': 'a', 'hidden': False, 'is_empty_element': False, 'next_element': 'Make everything OK', 'paren
+t_name': 'div', 'text': 'Make everything OK'}

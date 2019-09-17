@@ -42,7 +42,7 @@ def __get_element_by_type(soup: BeautifulSoup,
                           element_type: str,
                           attribute_name: str,
                           attribute_value: str) -> bs4_element:
-    element_ = soup.find(element_type, {attribute_name: attribute_value})
+    element_ = soup.find_all(element_type, {attribute_name: attribute_value})
     return element_
 
 
@@ -50,15 +50,19 @@ def __get_element_by_attribute(soup: BeautifulSoup,
                                attribute_name: str,
                                attribute_value: str) -> bs4_element:
     kwargs = {attribute_name: attribute_value}
-    element = soup.find(**kwargs)
+    element = soup.find_all(**kwargs)
     return element
 
 
 def get_original_target_element(soup, element_type, attribute_name, attribute_value):
     if element_type:
-        return __get_element_by_type(soup, element_type, attribute_name, attribute_value)
+        target_elements = __get_element_by_type(soup, element_type, attribute_name, attribute_value)
     else:
-        return __get_element_by_attribute(soup, attribute_name, attribute_value)
+        target_elements = __get_element_by_attribute(soup, attribute_name, attribute_value)
+
+    qty = len(target_elements)
+    assert qty == 1, f'The are {qty} elements with search criteria: {element_type, attribute_name, attribute_value}'
+    return target_elements[0]
 
 
 def get_all_elements(soup: BeautifulSoup) -> List:

@@ -1,9 +1,8 @@
 from typing import *
 from argparse import ArgumentParser
-from collections import OrderedDict
 from difflib import SequenceMatcher
 
-from bs4 import BeautifulSoup, element as bs4_element
+from bs4 import BeautifulSoup, Tag
 
 
 def parse_args() -> Tuple:
@@ -40,38 +39,38 @@ def get_soup(page_content: str, parser: str = "html.parser") -> BeautifulSoup:
 
 def __get_element_by_type(soup: BeautifulSoup,
                           element_type: str,
-                          attribute_name: str,
-                          attribute_value: str) -> bs4_element:
-    element_ = soup.find_all(element_type, {attribute_name: attribute_value})
+                          **kwargs: Dict[str, str]) -> Tag:
+
+    element_ = soup.find_all(element_type, **kwargs)
     return element_
 
 
 def __get_element_by_attribute(soup: BeautifulSoup,
-                               attribute_name: str,
-                               attribute_value: str) -> bs4_element:
-    kwargs = {attribute_name: attribute_value}
+                               **kwargs: Dict[str, str]) -> Tag:
+
     element = soup.find_all(**kwargs)
     return element
 
 
-def get_original_target_element(soup, element_type, attribute_name, attribute_value):
+def get_original_target_element(contents_origin: str,
+                                element_type: str,
+                                attribute_name: str,
+                                attribute_value: str) -> Tag:
+
+    soup = get_soup(contents_origin)
+    kwargs = {attribute_name: attribute_value}
     if element_type:
-        target_elements = __get_element_by_type(soup, element_type, attribute_name, attribute_value)
+        target_elements = __get_element_by_type(soup, element_type, **kwargs)
     else:
-        target_elements = __get_element_by_attribute(soup, attribute_name, attribute_value)
+        target_elements = __get_element_by_attribute(soup, **kwargs)
 
     qty = len(target_elements)
     assert qty == 1, f'The are {qty} elements with search criteria: {element_type, attribute_name, attribute_value}'
     return target_elements[0]
 
 
-def get_all_elements(soup: BeautifulSoup) -> List:
+def get_all_elements(soup: BeautifulSoup) -> List[Tag]:
     return soup.find_all()
-
-
-def get_best_match(similarity_map: Dict) -> bs4_element:
-    best_case = max(similarity_map.keys())
-    return similarity_map[best_case]
 
 
 def get_generator_length(generator: Generator) -> int:
@@ -93,14 +92,14 @@ def get_parents_description(parents: Generator) -> str:
     return output_string
 
 
-def __get_coincidence_next_element(properties_original: OrderedDict, properties_mutated: OrderedDict) -> float:
+def __get_coincidence_next_element(properties_original: Dict, properties_mutated: Dict) -> float:
     is_same_next_element_original = properties_original.get('name') == properties_original.get('next_element')
     is_same_next_element_mutation = properties_mutated.get('name') == properties_mutated.get('next_element')
     coincidence = SequenceMatcher(None, str(is_same_next_element_original), str(is_same_next_element_mutation))
     return coincidence.ratio()
 
 
-def __get_coincidence_parents_description(properties_original: OrderedDict, properties_mutated: OrderedDict) -> float:
+def __get_coincidence_parents_description(properties_original: Dict, properties_mutated: Dict) -> float:
     parents_description_original = get_parents_description(properties_original.get('parents'))
     parents_description_mutation = get_parents_description(properties_mutated.get('parents'))
     coincidence = SequenceMatcher(None, parents_description_original, parents_description_mutation).ratio()
@@ -109,7 +108,7 @@ def __get_coincidence_parents_description(properties_original: OrderedDict, prop
     return coincidence
 
 
-def __get_coincidence_parents_count(properties_original: OrderedDict, properties_mutated: OrderedDict) -> float:
+def __get_coincidence_parents_count(properties_original: Dict, properties_mutated: Dict) -> float:
     parents_count_original = get_generator_length(properties_original.get('parents'))
     parents_count_mutation = get_generator_length(properties_mutated.get('parents'))
     parents_counts = parents_count_original, parents_count_mutation
@@ -117,7 +116,7 @@ def __get_coincidence_parents_count(properties_original: OrderedDict, properties
     return coincidence
 
 
-def __get_all_keys(*args: OrderedDict) -> Set[str]:
+def __get_all_keys(*args: Dict[Any, Any]) -> Set[str]:
     all_keys = []
     for dic in args:
         keys_list = list(dic)
@@ -126,7 +125,7 @@ def __get_all_keys(*args: OrderedDict) -> Set[str]:
     return all_keys
 
 
-def get_similarity(properties_original: OrderedDict, properties_mutated: OrderedDict) -> float:
+def get_similarity(properties_original: Dict, properties_mutated: Dict) -> float:
     if properties_original.get('id') == properties_mutated.get('id'):
         return 100.
 
@@ -157,7 +156,7 @@ def get_similarity(properties_original: OrderedDict, properties_mutated: Ordered
     return mean
 
 
-def get_property_string(properties: Dict, attr_name: str) -> str:
+def get_property_string(properties: Dict[str, str], attr_name: str) -> str:
     property_ = properties.get(attr_name)
     if property_:
         return str(property_)
@@ -165,7 +164,7 @@ def get_property_string(properties: Dict, attr_name: str) -> str:
         return ''
 
 
-def get_essential_properties(element: bs4_element) -> OrderedDict:
+def get_essential_properties(element: Tag) -> Dict[str, Any]:
     attrs = element.attrs
     try:
         del attrs['rel']
@@ -184,7 +183,7 @@ def get_essential_properties(element: bs4_element) -> OrderedDict:
         if isinstance(v, str):
             attrs[k] = get_pretty_string(v)
 
-    return OrderedDict(attrs)
+    return attrs
 
 
 def get_pretty_string(string_: str) -> str:
@@ -192,7 +191,7 @@ def get_pretty_string(string_: str) -> str:
     return ' '.join(ss.strip() for ss in split_string)
 
 
-def get_pretty_attributes(element: bs4_element) -> str:
+def get_pretty_attributes(element: Tag) -> str:
     attributes = element.attrs
     try:
         del attributes['parents']
@@ -215,7 +214,7 @@ def get_pretty_attributes(element: bs4_element) -> str:
         return ''
 
 
-def get_path(element: bs4_element) -> str:
+def get_path(element: Tag) -> str:
     output_string = ''
     output_string = get_pretty_attributes(element) + output_string
 
@@ -233,29 +232,36 @@ def get_path(element: bs4_element) -> str:
     return output_string
 
 
+def get_best_matching_element(target_element_original: Tag,
+                              contents_mutation: str) -> Tag:
+
+    soup_mutation = get_soup(contents_mutation)
+    all_elements_from_mutated_page = get_all_elements(soup_mutation)
+
+    properties_original = get_essential_properties(target_element_original)
+
+    best_match = {'similarity': 0,
+                  'element': None}
+
+    for element in all_elements_from_mutated_page:
+        properties_mutated = get_essential_properties(element)
+        similarity = get_similarity(properties_original, properties_mutated)
+        if similarity > best_match['similarity']:
+            best_match['similarity'] = similarity
+            best_match['element'] = element
+
+    return best_match['element']
+
+
 def main():
     file_path_origin, file_path_mutation, element_type, attribute_name, attribute_value = parse_args()
 
     contents_origin = read_file(file_path_origin)
     contents_mutation = read_file(file_path_mutation)
 
-    soup_origin = get_soup(contents_origin)
-    target_element_original = get_original_target_element(soup_origin, element_type, attribute_name, attribute_value)
-    properties_original = get_essential_properties(target_element_original)
-
-    soup_mutation = get_soup(contents_mutation)
-
-    all_elements_from_mutated_page = get_all_elements(soup_mutation)
-
-    similarity_map = dict()
-    for element in all_elements_from_mutated_page:
-        properties_mutated = get_essential_properties(element)
-        similarity = get_similarity(properties_original, properties_mutated)
-        similarity_map[similarity] = element
-
-    best_match = get_best_match(similarity_map)
-
-    path_to_best_match = get_path(best_match)
+    target_element_original = get_original_target_element(contents_origin, element_type, attribute_name, attribute_value)
+    best_matching_element = get_best_matching_element(target_element_original, contents_mutation)
+    path_to_best_match = get_path(best_matching_element)
     print(path_to_best_match)
 
 
